@@ -135,7 +135,8 @@ impl Graph {
     // TODO: track a argument used_sink. at any point, we can stop
     fn _generate(g: &mut Graph, i: u16, n: u16) {
         if DEBUG {
-            println!("PROCESSING i={}, n={}:\t\t\t\t{:?}", i, n, g.vertices)
+            println!("PROCESSING i={}, n={}:\t\t\t\t{:?}", i, n, g.vertices);
+            println!("{}", g.to_graphviz());
         }
 
         if i == n + 1 {
@@ -203,7 +204,7 @@ impl Graph {
 
                     // TODO: clean this up. no need to add undirected edge if we already have one. compicates the prior iteration a bit.
                     if g.vertices[i_][2].is_none() {
-                        // let mut used_unconnected_k_vertex = false;
+                        let mut used_unconnected_k_vertex = false;
                         for k in 1..n + 2 {
                             // undirected edge
                             // TODO: handle case where we decide this should be the sink
@@ -213,22 +214,22 @@ impl Graph {
                             let k_: usize = k.into();
 
                             if g.vertices[k_][2].is_none() {
-                                // if k != j
-                                //     && g.vertices[k_][0].is_none()
-                                //     && g.vertices[k_][1].is_none()
-                                //     && g.vertices[k_][2].is_none()
-                                // {
-                                //     if used_unconnected_k_vertex {
-                                //         if DEBUG {
-                                //             println!("breaking because of unconnected k {}", k);
-                                //         }
-                                //         break;
-                                //     }
-                                //     used_unconnected_k_vertex = true;
-                                //     if DEBUG {
-                                //         println!("saw unconnected k {}", k)
-                                //     }
-                                // }
+                                if k != j
+                                    && g.vertices[k_][0].is_none()
+                                    && g.vertices[k_][1].is_none()
+                                    && g.vertices[k_][2].is_none()
+                                {
+                                    if used_unconnected_k_vertex {
+                                        if DEBUG {
+                                            println!("breaking because of unconnected k {}", k);
+                                        }
+                                        break;
+                                    }
+                                    used_unconnected_k_vertex = true;
+                                    if DEBUG {
+                                        println!("saw unconnected k {}", k)
+                                    }
+                                }
 
                                 let old_i = g.vertices[i_];
                                 let old_j = g.vertices[j_];
@@ -285,12 +286,12 @@ impl Graph {
             }
             if v[2].is_some() {
                 if usize::from(v[2].unwrap()) > i {
-                str.push_str(&format!(
-                    "\n\t{} -> {} [dir=none, color=red];",
-                    i,
-                    v[2].unwrap()
-                ));
-            }
+                    str.push_str(&format!(
+                        "\n\t{} -> {} [dir=none, color=red];",
+                        i,
+                        v[2].unwrap()
+                    ));
+                }
             }
         }
         str.push_str("\n}");
