@@ -146,6 +146,7 @@ impl Graph {
                     true,
                     g.vertices
                 );
+                println!("{}", g.to_graphviz());
             } else if DEBUG {
                 println!(
                     "g: is_valid: {}, is_solution: {:?}!\t\t{:?}",
@@ -273,6 +274,28 @@ impl Graph {
 
         return;
     }
+
+    fn to_graphviz(&self) -> String {
+        let mut str = "digraph G {
+\tedge [color=blue]"
+            .to_owned();
+        for (i, v) in self.vertices.iter().enumerate() {
+            if v[0].is_some() {
+                str.push_str(&format!("\n\t{} -> {};", i, v[0].unwrap()));
+            }
+            if v[2].is_some() {
+                if usize::from(v[2].unwrap()) > i {
+                str.push_str(&format!(
+                    "\n\t{} -> {} [dir=none, color=red];",
+                    i,
+                    v[2].unwrap()
+                ));
+            }
+            }
+        }
+        str.push_str("\n}");
+        return str;
+    }
 }
 
 fn main() {
@@ -368,10 +391,10 @@ fn main() {
     Graph::generate(3);
     println!("4 ///////////////////////////////////////////////////////////////////////////////////////////");
     Graph::generate(4);
-    println!("5 ///////////////////////////////////////////////////////////////////////////////////////////");
-    Graph::generate(5);
-    println!("6 ///////////////////////////////////////////////////////////////////////////////////////////");
-    Graph::generate(6);
+    // println!("5 ///////////////////////////////////////////////////////////////////////////////////////////");
+    // Graph::generate(5);
+    // println!("6 ///////////////////////////////////////////////////////////////////////////////////////////");
+    // Graph::generate(6);
     // println!("7 ///////////////////////////////////////////////////////////////////////////////////////////");
     // Graph::generate(7);
     // println!("8 ///////////////////////////////////////////////////////////////////////////////////////////");
