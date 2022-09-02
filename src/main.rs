@@ -29,8 +29,35 @@ struct Graph {
 
 // TODO: scrutinize heavy use of `into`
 
+const DEBUG: bool = false;
+
 impl Graph {
-    // TODO: is_valid_graph. just to sanity check
+    fn is_valid(&self) -> bool {
+        for (i, v) in self.vertices.iter().enumerate() {
+            if v[0].is_some() {
+                let v0: usize = v[0].unwrap().into();
+                if self.vertices[v0][1].is_none() || usize::from(self.vertices[v0][1].unwrap()) != i
+                {
+                    return false;
+                }
+            }
+            if v[1].is_some() {
+                let v1: usize = v[1].unwrap().into();
+                if self.vertices[v1][0].is_none() || usize::from(self.vertices[v1][0].unwrap()) != i
+                {
+                    return false;
+                }
+            }
+            if v[2].is_some() {
+                let v2: usize = v[2].unwrap().into();
+                if self.vertices[v2][2].is_none() || usize::from(self.vertices[v2][2].unwrap()) != i
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     fn is_connected(&self, v_count: u16) -> bool {
         let mut visited = HashSet::new();
@@ -107,14 +134,26 @@ impl Graph {
     // TODO: bound if we process an edge that is completely unconnected
     // TODO: track a argument used_sink. at any point, we can stop
     fn _generate(g: &mut Graph, i: u16, n: u16) {
-        println!("PROCESSING i={}, n={}:\t\t{:?}", i, n, g.vertices);
+        if DEBUG {
+            println!("PROCESSING i={}, n={}:\t\t\t\t{:?}", i, n, g.vertices)
+        }
 
         if i == n + 1 {
-            println!(
-                "g: is_solution: {:?}!\t\t{:?}",
-                g.is_solution(n),
-                g.vertices
-            );
+            if g.is_solution(n) {
+                println!(
+                    "g: is_valid: {}, is_solution: {:?}!\t\t{:?}",
+                    g.is_valid(),
+                    true,
+                    g.vertices
+                );
+            } else if DEBUG {
+                println!(
+                    "g: is_valid: {}, is_solution: {:?}!\t\t{:?}",
+                    g.is_valid(),
+                    false,
+                    g.vertices
+                );
+            }
             return;
         }
         let i_: usize = i.into();
@@ -127,13 +166,16 @@ impl Graph {
             Self::_generate(g, i + 1, n);
         } else {
             if !g.vertices.len() <= i_ {
-                println!("unconnected vertex. abort");
+                if DEBUG {
+                    println!("unconnected vertex. abort");
+                }
                 return;
             }
 
             // normal edge. place a outgoing edge and an undirected edge if does not exist.
             // TODO: lot of redundant isomorphic graphs here. should be able to restrict branching here. only try connecting the
             // very next free vertex. rely on stable order of trying directed and then undirected next
+            let mut used_unconnected_j_vertex = false;
             for j in 1..n + 2 {
                 // directed edge
                 if i == j {
@@ -142,8 +184,25 @@ impl Graph {
                 let j_: usize = j.into();
 
                 if g.vertices[j_][1].is_none() {
+                    if g.vertices[j_][0].is_none()
+                        && g.vertices[j_][1].is_none()
+                        && g.vertices[j_][2].is_none()
+                    {
+                        if used_unconnected_j_vertex {
+                            if DEBUG {
+                                println!("breaking because of unconnected j {}", j);
+                            }
+                            break;
+                        }
+                        used_unconnected_j_vertex = true;
+                        if DEBUG {
+                            println!("saw unconnected j {}", j)
+                        }
+                    }
+
                     // TODO: clean this up. no need to add undirected edge if we already have one. compicates the prior iteration a bit.
                     if g.vertices[i_][2].is_none() {
+                        // let mut used_unconnected_k_vertex = false;
                         for k in 1..n + 2 {
                             // undirected edge
                             // TODO: handle case where we decide this should be the sink
@@ -153,11 +212,28 @@ impl Graph {
                             let k_: usize = k.into();
 
                             if g.vertices[k_][2].is_none() {
+                                // if k != j
+                                //     && g.vertices[k_][0].is_none()
+                                //     && g.vertices[k_][1].is_none()
+                                //     && g.vertices[k_][2].is_none()
+                                // {
+                                //     if used_unconnected_k_vertex {
+                                //         if DEBUG {
+                                //             println!("breaking because of unconnected k {}", k);
+                                //         }
+                                //         break;
+                                //     }
+                                //     used_unconnected_k_vertex = true;
+                                //     if DEBUG {
+                                //         println!("saw unconnected k {}", k)
+                                //     }
+                                // }
+
                                 let old_i = g.vertices[i_];
                                 let old_j = g.vertices[j_];
                                 let old_k = g.vertices[k_];
 
-                                // TODO: faster to assign cell by cell?
+                                // TODO: consider assigning cell by cell?
                                 // update this vertex
                                 g.vertices[i_] = [Some(j), g.vertices[i_][1], Some(k)];
                                 // update the other side of the outgoing directed edge and undirected edge
@@ -176,7 +252,7 @@ impl Graph {
                         let old_i = g.vertices[i_];
                         let old_j = g.vertices[j_];
 
-                        // TODO: faster to assign cell by cell?
+                        // TODO: consider assigning cell by cell?
                         // update this vertex
                         g.vertices[i_] = [Some(j), g.vertices[i_][1], g.vertices[i_][2]];
                         // update the other side of the outgoing directed edge
@@ -190,7 +266,9 @@ impl Graph {
                     }
                 }
             }
-            println!("iteration ended. back to:\t{:?}", g.vertices);
+            if DEBUG {
+                println!("iteration ended. back to:\t\t\t{:?}", g.vertices);
+            }
         }
 
         return;
@@ -198,86 +276,88 @@ impl Graph {
 }
 
 fn main() {
-    // currently testing the solutions given in the example problem
-    let gs: Vec<Graph> = vec![
-        // where M = 0
-        Graph {
-            vertices: vec![[Some(1), None, None], [None, Some(0), None]],
-        },
-        // where M = 2
-        Graph {
-            vertices: vec![
-                [Some(1), None, None],
-                [Some(2), Some(0), Some(2)],
-                [Some(3), Some(1), Some(1)],
-                [None, Some(2), None],
-            ],
-        },
-        // where M = 4
-        Graph {
-            vertices: vec![
-                [Some(1), None, None],
-                [Some(2), Some(1), Some(2)],
-                [Some(3), Some(2), Some(1)],
-                [Some(4), Some(3), Some(4)],
-                [Some(5), Some(4), Some(3)],
-                [None, Some(5), None],
-            ],
-        },
-        Graph {
-            vertices: vec![
-                [Some(1), None, None],
-                [Some(2), Some(1), Some(3)],
-                [Some(3), Some(2), Some(4)],
-                [Some(4), Some(3), Some(1)],
-                [Some(5), Some(4), Some(2)],
-                [None, Some(5), None],
-            ],
-        },
-        Graph {
-            vertices: vec![
-                [Some(1), None, None],
-                [Some(2), Some(1), Some(4)],
-                [Some(3), Some(2), Some(3)],
-                [Some(4), Some(3), Some(2)],
-                [Some(5), Some(4), Some(1)],
-                [None, Some(5), None],
-            ],
-        },
-        Graph {
-            vertices: vec![
-                [Some(1), None, None],
-                [Some(2), Some(1), Some(3)],
-                [None, Some(2), None],
-                [Some(4), Some(5), Some(1)],
-                [Some(5), Some(3), Some(5)],
-                [Some(3), Some(4), Some(4)],
-            ],
-        },
-        Graph {
-            vertices: vec![
-                [Some(1), None, None],
-                [Some(2), Some(0), Some(4)],
-                [Some(3), Some(1), Some(5)],
-                [None, Some(2), None],
-                [Some(5), Some(5), Some(1)],
-                [Some(4), Some(4), Some(2)],
-            ],
-        },
-    ];
+    // // currently testing the solutions given in the example problem
+    // let gs: Vec<Graph> = vec![
+    //     // where M = 0
+    //     Graph {
+    //         vertices: vec![[Some(1), None, None], [None, Some(0), None]],
+    //     },
+    //     // where M = 2
+    //     Graph {
+    //         vertices: vec![
+    //             [Some(1), None, None],
+    //             [Some(2), Some(0), Some(2)],
+    //             [Some(3), Some(1), Some(1)],
+    //             [None, Some(2), None],
+    //         ],
+    //     },
+    //     // where M = 4
+    //     Graph {
+    //         vertices: vec![
+    //             [Some(1), None, None],
+    //             [Some(2), Some(0), Some(2)],
+    //             [Some(3), Some(1), Some(1)],
+    //             [Some(4), Some(2), Some(4)],
+    //             [Some(5), Some(3), Some(3)],
+    //             [None, Some(4), None],
+    //         ],
+    //     },
+    //     Graph {
+    //         vertices: vec![
+    //             [Some(1), None, None],
+    //             [Some(2), Some(0), Some(3)],
+    //             [Some(3), Some(1), Some(4)],
+    //             [Some(4), Some(2), Some(1)],
+    //             [Some(5), Some(3), Some(2)],
+    //             [None, Some(4), None],
+    //         ],
+    //     },
+    //     Graph {
+    //         vertices: vec![
+    //             [Some(1), None, None],
+    //             [Some(2), Some(0), Some(4)],
+    //             [Some(3), Some(1), Some(3)],
+    //             [Some(4), Some(2), Some(2)],
+    //             [Some(5), Some(3), Some(1)],
+    //             [None, Some(4), None],
+    //         ],
+    //     },
+    //     Graph {
+    //         vertices: vec![
+    //             [Some(1), None, None],
+    //             [Some(2), Some(0), Some(3)],
+    //             [None, Some(1), None],
+    //             [Some(4), Some(5), Some(1)],
+    //             [Some(5), Some(3), Some(5)],
+    //             [Some(3), Some(4), Some(4)],
+    //         ],
+    //     },
+    //     Graph {
+    //         vertices: vec![
+    //             [Some(1), None, None],
+    //             [Some(2), Some(0), Some(4)],
+    //             [Some(3), Some(1), Some(5)],
+    //             [None, Some(2), None],
+    //             [Some(5), Some(5), Some(1)],
+    //             [Some(4), Some(4), Some(2)],
+    //         ],
+    //     },
+    // ];
 
-    for g in gs {
-        let n = g.vertices.len() - 2;
-        println!(
-            "g(n={}) is_solution: {:?}!\t{:?}",
-            n,
-            g.is_solution(n as u16),
-            g.vertices
-        );
-    }
+    // for g in gs {
+    //     let n = g.vertices.len() - 2;
+    //     println!(
+    //         "g(n={}) is_valid: {}, is_solution: {:?}!\t{:?}",
+    //         n,
+    //         g.is_valid(),
+    //         g.is_solution(n as u16),
+    //         g.vertices
+    //     );
+    // }
 
     // test generation
-    println!("\n\n");
+    use std::time::Instant;
+    let now = Instant::now();
     println!("0 ///////////////////////////////////////////////////////////////////////////////////////////");
     Graph::generate(0);
     println!("1 ///////////////////////////////////////////////////////////////////////////////////////////");
@@ -288,6 +368,22 @@ fn main() {
     Graph::generate(3);
     println!("4 ///////////////////////////////////////////////////////////////////////////////////////////");
     Graph::generate(4);
+    println!("5 ///////////////////////////////////////////////////////////////////////////////////////////");
+    Graph::generate(5);
+    println!("6 ///////////////////////////////////////////////////////////////////////////////////////////");
+    Graph::generate(6);
+    // println!("7 ///////////////////////////////////////////////////////////////////////////////////////////");
+    // Graph::generate(7);
+    // println!("8 ///////////////////////////////////////////////////////////////////////////////////////////");
+    // Graph::generate(8);
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+
+    // first timings:
+    // n=4 160.95µs
+    // n=6 3.10ms
+    // n=8 145.28ms
+    // n=10 10.36s oh boy...
 }
 
 /*
