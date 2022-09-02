@@ -128,18 +128,16 @@ impl Graph {
         let mut g = Graph {
             vertices: vec![[None; 3]; n_ + 2],
         };
-        return Self::_generate(&mut g, 0, n);
+        return Self::_generate(&mut g, 0, false, n);
     }
 
-    // TODO: bound if we process an edge that is completely unconnected
-    // TODO: track a argument used_sink. at any point, we can stop
-    fn _generate(g: &mut Graph, i: u16, n: u16) {
+    fn _generate(g: &mut Graph, i: u16, used_sink: bool, n: u16) {
         if DEBUG {
             println!("PROCESSING i={}, n={}:\t\t\t\t{:?}", i, n, g.vertices);
             println!("{}", g.to_graphviz());
         }
 
-        if i == n + 1 {
+        if i == n + 2 {
             if g.is_solution(n) {
                 println!(
                     "g: is_valid: {}, is_solution: {:?}!\t\t{:?}",
@@ -147,7 +145,7 @@ impl Graph {
                     true,
                     g.vertices
                 );
-                println!("{}", g.to_graphviz());
+                // println!("{}", g.to_graphviz());
             } else if DEBUG {
                 println!(
                     "g: is_valid: {}, is_solution: {:?}!\t\t{:?}",
@@ -165,18 +163,11 @@ impl Graph {
             g.vertices[i_] = [Some(i + 1), None, None];
             g.vertices[i_ + 1] = [None, Some(i), None];
 
-            Self::_generate(g, i + 1, n);
+            Self::_generate(g, i + 1, used_sink, n);
         } else {
-            if !g.vertices.len() <= i_ {
-                if DEBUG {
-                    println!("unconnected vertex. abort");
-                }
-                return;
-            }
-
             // normal edge. place a outgoing edge and an undirected edge if does not exist.
-            // TODO: lot of redundant isomorphic graphs here. should be able to restrict branching here. only try connecting the
-            // very next free vertex. rely on stable order of trying directed and then undirected next
+            // should be able to restrict branching here. only try connecting the very next free vertex. rely on stable
+            // order of trying directed and then undirected next
             let mut used_unconnected_j_vertex = false;
             for j in 1..n + 2 {
                 // directed edge
@@ -207,7 +198,6 @@ impl Graph {
                         let mut used_unconnected_k_vertex = false;
                         for k in 1..n + 2 {
                             // undirected edge
-                            // TODO: handle case where we decide this should be the sink
                             if i == k {
                                 continue;
                             }
@@ -242,7 +232,7 @@ impl Graph {
                                 g.vertices[j_] = [g.vertices[j_][0], Some(i), g.vertices[j_][2]];
                                 g.vertices[k_] = [g.vertices[k_][0], g.vertices[k_][1], Some(i)];
 
-                                Self::_generate(g, i + 1, n);
+                                Self::_generate(g, i + 1, used_sink, n);
 
                                 // TODO: backtrack w/ a ton of state...
                                 g.vertices[i_] = old_i;
@@ -260,7 +250,7 @@ impl Graph {
                         // update the other side of the outgoing directed edge
                         g.vertices[j_] = [g.vertices[j_][0], Some(i), g.vertices[j_][2]];
 
-                        Self::_generate(g, i + 1, n);
+                        Self::_generate(g, i + 1, used_sink, n);
 
                         // TODO: backtrack w/ a ton of state...
                         g.vertices[i_] = old_i;
@@ -268,6 +258,11 @@ impl Graph {
                     }
                 }
             }
+            // you could also be the sink. fix iteration where you add directed edge on last vertex
+            if !used_sink && i_ > 1 && g.vertices[i_][1].is_some() && g.vertices[i_][2].is_none() {
+                Self::_generate(g, i + 1, true, n);
+            }
+
             if DEBUG {
                 println!("iteration ended. back to:\t\t\t{:?}", g.vertices);
             }
@@ -403,19 +398,25 @@ fn main() {
     let elapsed = now.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
 
-    // first timings:
+    // first timings (bad results. 9/1):
     // n=4 160.95µs
     // n=6 3.10ms
-    // n=8 145.28ms
+    // n=8 39.50ms
     // n=10 10.36s oh boy...
+
+    // second timings (first time working. 9/1):
+    // n=4 261.50µs
+    // n=6 1.62ms
+    // n=8 145.28ms
+    // n=10 765.96ms better but still brutal. only feasible for small n
 }
 
 /*
 Ideas:
 * [x] correctness check: connected, right number of edges, right edges
-* [ ] permutation generation
-*     [ ] we know how many edges there will be. n = 4 means 6 vertices, 5 blue edges, 2 red edges. limit permutations?
-* [ ] backtracking
-* [ ] isomorphic graphs. no redundant shapes
+* [x] permutation generation
+*     [x] we know how many edges there will be. n = 4 means 6 vertices, 5 blue edges, 2 red edges. limit permutations?
+* [x] backtracking
+* [?] isomorphic graphs. no redundant shapes
 * [ ] parallelize?
 */
