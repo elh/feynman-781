@@ -258,24 +258,32 @@ impl Graph {
     }
 }
 
-fn timed<F>(func: F)
+// prints a csv header for timed runs
+fn timed_header() {
+    println!("case\tn\tresult\tdur_ms\tdur_pretty");
+}
+
+// prints a csv line for timed run
+fn timed_generate<F>(func: F, n: u16)
 where
-    F: Fn(),
+    F: Fn(u16) -> u64,
 {
     use std::time::Instant;
     let now = Instant::now();
-    func();
+    let res = func(n);
     let elapsed = now.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+    println!("F({})\t{}\t{}\t{}\t{:.2?}", n, n, res, elapsed.as_millis(), elapsed);
 }
 
 fn main() {
     // generation
-    timed(|| println!("F(0): {}", Graph::generate(0)));
-    timed(|| println!("F(2): {}", Graph::generate(2)));
-    timed(|| println!("F(4): {}", Graph::generate(4)));
-    timed(|| println!("F(6): {}", Graph::generate(6)));
-    timed(|| println!("F(8): {}", Graph::generate(8)));
-    timed(|| println!("F(10): {}", Graph::generate(10)));
-    timed(|| println!("F(12): {}", Graph::generate(12)));
+    timed_header();
+    // NOTE: skipping F(0). currently breaks a simplifying assumption when n > 0.
+    timed_generate(Graph::generate, 2);
+    timed_generate(Graph::generate, 4);
+    timed_generate(Graph::generate, 6);
+    timed_generate(Graph::generate, 8);
+    timed_generate(Graph::generate, 10);
+    timed_generate(Graph::generate, 12);
+    timed_generate(Graph::generate, 14);
 }
