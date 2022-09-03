@@ -11,6 +11,7 @@ use std::collections::HashSet;
 
 // TODO: consider making vertices a multi-dimensional array for data locality. N needs to be a const though
 // TODO: consider not using Option so that manually initing is easier to type..
+// TODO: support parallelism?
 struct Graph {
     // index represents vertex id
     // values are a tuple of (directed edge to, directed edge from, undirected edge to) vertex ids
@@ -130,12 +131,11 @@ impl Graph {
         }
 
         if i == n + 2 {
-            if g.is_solution(n) {
-                if PRINT_SOLUTIONS {
-                    println!("solution found:\t{:?}", g.vertices);
-                }
-                *count += 1;
+            // we never generate unconnected graphs or graphs with incorrect edges. no check is needed
+            if PRINT_SOLUTIONS {
+                println!("solution found:\t{:?}", g.vertices);
             }
+            *count += 1;
             return;
         }
         let i_: usize = i.into();
@@ -147,9 +147,17 @@ impl Graph {
 
             Self::_generate(g, i + 1, used_sink, count, n);
         } else {
+            if g.vertices[i_][0].is_none()
+                && g.vertices[i_][1].is_none()
+                && g.vertices[i_][2].is_none()
+            {
+                return;
+            }
+
             // place a outgoing edge and place an undirected edge if does not exist.
             // restrict branching by only try connecting the very next free vertex. rely on stable order of trying
             // directed and then undirected next
+            // TOOD: avoid iteration of j and k by using a stack to track candidates??
             let mut used_unconnected_j_vertex = false;
             for j in 1..n + 2 {
                 // directed edge
@@ -272,7 +280,14 @@ where
     let now = Instant::now();
     let res = func(n);
     let elapsed = now.elapsed();
-    println!("F({})\t{}\t{}\t{}\t{:.2?}", n, n, res, elapsed.as_millis(), elapsed);
+    println!(
+        "F({})\t{}\t{}\t{}\t{:.2?}",
+        n,
+        n,
+        res,
+        elapsed.as_millis(),
+        elapsed
+    );
 }
 
 fn main() {
