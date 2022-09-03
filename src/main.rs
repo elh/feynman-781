@@ -135,7 +135,8 @@ impl Graph {
         }
 
         if i == n + 2 {
-            // we never generate unconnected graphs or graphs with incorrect edges. no check is needed
+            // end reached.
+            // we never generate unconnected graphs or graphs with incorrect edges. no check is needed.
             if PRINT_SOLUTIONS {
                 println!("solution found:\t{:?}", g.vertices);
                 if PRINT_SOLUTIONS_GRAPHVIZ {
@@ -148,12 +149,13 @@ impl Graph {
         let i_: usize = i.into();
 
         if i == 0 {
-            // source vertex. place a single outgoing edge
+            // source vertex. place a single outgoing edge.
             g.vertices[i_] = [Some(i + 1), None, None];
             g.vertices[i_ + 1] = [None, Some(i), None];
 
             Self::_generate(g, i + 1, used_sink, count, n);
         } else {
+            // if vertex is not connected, it will create an unconnected graph. abort.
             if g.vertices[i_][0].is_none()
                 && g.vertices[i_][1].is_none()
                 && g.vertices[i_][2].is_none()
@@ -161,10 +163,10 @@ impl Graph {
                 return;
             }
 
-            // place a outgoing edge and place an undirected edge if does not exist.
-            // restrict branching by only try connecting the very next free vertex. rely on stable order of trying
-            // directed and then undirected next
-            // TOOD: avoid iteration of j and k by using a stack to track candidates??
+            // place an outgoing edge and place an undirected edge if does not exist, then recurse.
+            // restrict branching by only trying to connect the very next free vertex. rely on stable order of trying
+            // directed and then undirected next.
+            // TODO: avoid iteration of j and k by using a stack to track candidates??
             let mut used_unconnected_j_vertex = false;
             for j in 1..n + 2 {
                 // directed edge
@@ -240,7 +242,8 @@ impl Graph {
                     }
                 }
             }
-            // treat vertex as the sink and recurse
+
+            // treat vertex as the sink and recurse.
             if !used_sink && i_ > 1 && g.vertices[i_][1].is_some() && g.vertices[i_][2].is_none() {
                 Self::_generate(g, i + 1, true, count, n);
             }
@@ -249,7 +252,7 @@ impl Graph {
         return;
     }
 
-    // produce graphviz dot file for visualization
+    // produce graphviz dot file for visualization.
     fn to_graphviz(&self) -> String {
         let mut str = "digraph G {
 \tedge [color=blue]"
