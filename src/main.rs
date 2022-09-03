@@ -168,6 +168,8 @@ impl Graph {
             // directed and then undirected next.
             // TODO: avoid iteration of j and k by using a stack to track candidates??
             let mut used_unconnected_j_vertex = false;
+            // directed edges can connect to previously seen vertices, unseen but connected vertices, or a single new
+            // unconnected vertex.
             for j in 1..n + 2 {
                 // directed edge
                 if i == j {
@@ -188,7 +190,9 @@ impl Graph {
 
                     if g.vertices[i_][2].is_none() {
                         let mut used_unconnected_k_vertex = false;
-                        for k in 1..n + 2 {
+                        // undirected edges can only connect to unseen but connected vertices or single new unconnected
+                        // vertex.
+                        for k in i + 1..n + 2 {
                             // undirected edge
                             if i == k {
                                 continue;
