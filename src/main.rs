@@ -18,7 +18,9 @@ struct Graph {
 }
 
 const DEBUG: bool = false;
+const DEBUG_GRAPHVIZ: bool = false;
 const PRINT_SOLUTIONS: bool = false;
+const PRINT_SOLUTIONS_GRAPHVIZ: bool = false;
 
 impl Graph {
     // basic correctness sanity check for edges and their expected back pointers
@@ -126,13 +128,18 @@ impl Graph {
     fn _generate(g: &mut Graph, i: u16, used_sink: bool, count: &mut u64, n: u16) {
         if DEBUG {
             println!("PROCESSING i={}, n={}:\t\t\t\t{:?}", i, n, g.vertices);
-            println!("{}", g.to_graphviz());
+            if DEBUG_GRAPHVIZ {
+                println!("{}", g.to_graphviz());
+            }
         }
 
         if i == n + 2 {
             if g.is_solution(n) {
                 if PRINT_SOLUTIONS {
                     println!("solution found:\t{:?}", g.vertices);
+                    if PRINT_SOLUTIONS_GRAPHVIZ {
+                        println!("{}", g.to_graphviz());
+                    }
                 }
                 *count += 1;
             }
