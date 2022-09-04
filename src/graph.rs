@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 /* Let F(n) be the number of connected graphs with blue edges (directed) and red edges (undirected) containing:
  * * two vertices of degree 1, one with a single outgoing blue edge and the other with a single incoming blue edge.
  * * vertices of degree 3, each of which has an incoming blue edge, a different outgoing blue edge and a red edge.
@@ -25,92 +23,6 @@ const PRINT_SOLUTIONS: bool = false;
 const PRINT_SOLUTIONS_GRAPHVIZ: bool = false;
 
 impl Graph {
-    // basic correctness sanity check for edges and their expected back pointers
-    fn is_ok(&self) -> bool {
-        for (i, v) in self.vertices.iter().enumerate() {
-            if v[0].is_some() {
-                let v0: usize = v[0].unwrap().into();
-                if self.vertices[v0][1].is_none() || usize::from(self.vertices[v0][1].unwrap()) != i
-                {
-                    return false;
-                }
-            }
-            if v[1].is_some() {
-                let v1: usize = v[1].unwrap().into();
-                if self.vertices[v1][0].is_none() || usize::from(self.vertices[v1][0].unwrap()) != i
-                {
-                    return false;
-                }
-            }
-            if v[2].is_some() {
-                let v2: usize = v[2].unwrap().into();
-                if self.vertices[v2][2].is_none() || usize::from(self.vertices[v2][2].unwrap()) != i
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    fn is_connected(&self, v_count: u16) -> bool {
-        let mut visited = HashSet::new();
-        let mut fringe = Vec::new();
-        fringe.push(0);
-        while !fringe.is_empty() {
-            let cur = fringe.pop().unwrap();
-            visited.insert(cur);
-
-            for i in self.vertices[cur] {
-                if i.is_none() {
-                    continue;
-                }
-                let i_some = i.unwrap().into();
-                if !visited.contains(&i_some) {
-                    visited.insert(i_some);
-                    fringe.push(i_some);
-                }
-            }
-        }
-        return visited.len() == v_count.into();
-    }
-
-    fn has_valid_edges(&self) -> bool {
-        let mut has_source = false;
-        let mut has_sink = false;
-
-        for v in &self.vertices {
-            if v[0].is_some() && v[1].is_none() && v[2].is_none() {
-                if has_source {
-                    return false;
-                }
-                has_source = true;
-                continue;
-            }
-            if v[0].is_none() && v[1].is_some() && v[2].is_none() {
-                if has_sink {
-                    return false;
-                }
-                has_sink = true;
-                continue;
-            }
-            // else, has 1 incoming edge, 1 different outgoing edge, 1 undirected edge
-            if v[0].is_none() || v[1].is_none() || v[2].is_none() {
-                return false;
-            }
-        }
-
-        return has_source && has_sink;
-    }
-
-    // is a valid Feynman diagram graph
-    fn is_solution(&self, n: u16) -> bool {
-        if self.vertices.len() != (n + 2).into() {
-            return false;
-        }
-        return self.is_connected(n + 2) && self.has_valid_edges();
-    }
-
     // generate the count of all unique Feynman diagrams for given n. If debug flags are set, print found results.
     pub fn generate(n: u16) -> u64 {
         if n % 2 == 1 {
