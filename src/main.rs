@@ -125,7 +125,6 @@ impl Graph {
         return count;
     }
 
-    // TODO: consider granularity to assign into array and to store prior state for backtracking
     fn _generate(g: &mut Graph, i: u16, used_sink: bool, count: &mut u64, n: u16) {
         if DEBUG {
             println!("PROCESSING i={}, n={}:\t\t\t\t{:?}", i, n, g.vertices);
@@ -150,8 +149,8 @@ impl Graph {
 
         if i == 0 {
             // source vertex. place a single outgoing edge.
-            g.vertices[i_] = [Some(i + 1), None, None];
-            g.vertices[i_ + 1] = [None, Some(i), None];
+            g.vertices[i_][0] = Some(i + 1);
+            g.vertices[i_ + 1][1] = Some(i);
 
             Self::_generate(g, i + 1, used_sink, count, n);
         } else {
@@ -211,38 +210,33 @@ impl Graph {
                                     used_unconnected_k_vertex = true;
                                 }
 
-                                let old_i = g.vertices[i_];
-                                let old_j = g.vertices[j_];
-                                let old_k = g.vertices[k_];
-
                                 // update this vertex
                                 // update the other side of the outgoing directed edge and undirected edge
-                                g.vertices[i_] = [Some(j), g.vertices[i_][1], Some(k)];
-                                g.vertices[j_] = [g.vertices[j_][0], Some(i), g.vertices[j_][2]];
-                                g.vertices[k_] = [g.vertices[k_][0], g.vertices[k_][1], Some(i)];
+                                g.vertices[i_][0] = Some(j);
+                                g.vertices[i_][2] = Some(k);
+                                g.vertices[j_][1] = Some(i);
+                                g.vertices[k_][2] = Some(i);
 
                                 // recurse and backtrack
                                 Self::_generate(g, i + 1, used_sink, count, n);
 
-                                g.vertices[i_] = old_i;
-                                g.vertices[j_] = old_j;
-                                g.vertices[k_] = old_k;
+                                g.vertices[i_][0] = None;
+                                g.vertices[i_][2] = None;
+                                g.vertices[j_][1] = None;
+                                g.vertices[k_][2] = None;
                             }
                         }
                     } else {
-                        let old_i = g.vertices[i_];
-                        let old_j = g.vertices[j_];
-
                         // update this vertex
                         // update the other side of the outgoing directed edge
-                        g.vertices[i_] = [Some(j), g.vertices[i_][1], g.vertices[i_][2]];
-                        g.vertices[j_] = [g.vertices[j_][0], Some(i), g.vertices[j_][2]];
+                        g.vertices[i_][0] = Some(j);
+                        g.vertices[j_][1] = Some(i);
 
                         // recurse and backtrack
                         Self::_generate(g, i + 1, used_sink, count, n);
 
-                        g.vertices[i_] = old_i;
-                        g.vertices[j_] = old_j;
+                        g.vertices[i_][0] = None;
+                        g.vertices[j_][1] = None;
                     }
                 }
             }
