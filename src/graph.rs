@@ -10,9 +10,9 @@ use std::collections::HashSet;
  */
 
 // TODO: consider making vertices a multi-dimensional array for data locality. N needs to be a const though
-// TODO: consider not using Option so that manually initing is easier to type..
-// TODO: support parallelism?
+// TODO: consider not using Option uint but a signed int and -1 as a sentinel value
 // TODO: scrutinize profligate type conversions
+// TODO: support parallelism?
 pub struct Graph {
     // index represents vertex id
     // values are a tuple of (directed edge to, directed edge from, undirected edge to) vertex ids
@@ -26,7 +26,7 @@ const PRINT_SOLUTIONS_GRAPHVIZ: bool = false;
 
 impl Graph {
     // basic correctness sanity check for edges and their expected back pointers
-    pub fn is_ok(&self) -> bool {
+    fn is_ok(&self) -> bool {
         for (i, v) in self.vertices.iter().enumerate() {
             if v[0].is_some() {
                 let v0: usize = v[0].unwrap().into();
@@ -104,7 +104,7 @@ impl Graph {
     }
 
     // is a valid Feynman diagram graph
-    pub fn is_solution(&self, n: u16) -> bool {
+    fn is_solution(&self, n: u16) -> bool {
         if self.vertices.len() != (n + 2).into() {
             return false;
         }
@@ -166,12 +166,11 @@ impl Graph {
             // place an outgoing edge and place an undirected edge if does not exist, then recurse.
             // restrict branching by only trying to connect the very next free vertex. rely on stable order of trying
             // directed and then undirected next.
-            // TODO: avoid iteration of j and k by using a stack to track candidates??
+            // TODO: avoid iteration of j and k by tracking remaining candidates explicitly?
             let mut used_unconnected_j_vertex = false;
             // directed edges can connect to previously seen vertices, unseen but connected vertices, or a single new
             // unconnected vertex.
             for j in 1..n + 2 {
-                // directed edge
                 if i == j {
                     continue;
                 }
@@ -193,7 +192,6 @@ impl Graph {
                         // undirected edges can only connect to unseen but connected vertices or single new unconnected
                         // vertex.
                         for k in i + 1..n + 2 {
-                            // undirected edge
                             if i == k {
                                 continue;
                             }
