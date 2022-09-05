@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 /* Let F(n) be the number of connected graphs with blue edges (directed) and red edges (undirected) containing:
  * * two vertices of degree 1, one with a single outgoing blue edge and the other with a single incoming blue edge.
  * * vertices of degree 3, each of which has an incoming blue edge, a different outgoing blue edge and a red edge.
@@ -40,7 +42,7 @@ impl Graph {
         };
         let mut count: u64 = 0;
         Self::_generate(&mut g, 0, false, &mut count, n);
-        return count;
+        count
     }
 
     fn _generate(g: &mut Graph, i: u16, used_sink: bool, count: &mut u64, n: u16) {
@@ -157,8 +159,6 @@ impl Graph {
                 Self::_generate(g, i + 1, true, count, n);
             }
         }
-
-        return;
     }
 
     // produce graphviz dot file for visualization.
@@ -168,19 +168,13 @@ impl Graph {
             .to_owned();
         for (i, v) in self.vertices.iter().enumerate() {
             if v[0].is_some() {
-                str.push_str(&format!("\n\t{} -> {};", i, v[0].unwrap()));
+                _ = write!(str, "\n\t{} -> {};", i, v[0].unwrap());
             }
-            if v[2].is_some() {
-                if v[2].unwrap() as usize > i {
-                    str.push_str(&format!(
-                        "\n\t{} -> {} [dir=none, color=red];",
-                        i,
-                        v[2].unwrap()
-                    ));
-                }
+            if v[2].is_some() && v[2].unwrap() as usize > i {
+                _ = write!(str, "\n\t{} -> {} [dir=none, color=red];", i, v[2].unwrap());
             }
         }
         str.push_str("\n}");
-        return str;
+        str
     }
 }
