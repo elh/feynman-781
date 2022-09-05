@@ -41,14 +41,26 @@ impl Graph {
             vertices: [[None; 3]; MAX_N + 2],
         };
         let mut count: u64 = 0;
-        Self::_generate(n, &mut g, &mut count, 0, false);
+        Self::_generate(n, &mut g, &mut count, 0, false, 2, 2);
         count
     }
 
     // count is a mutable ref to a counter int of all found graphs so far
     // i is the vertex index to process in this call
     // used_sink tracks if we have already treated a prior vertex as the sink
-    fn _generate(n: u16, g: &mut Graph, count: &mut u64, i: u16, used_sink: bool) {
+    // j_0 is a cursor tracking the first vertex we need to consider for the directed edge
+    // k_0 is a cursor tracking the first vertex we need to consider for the undirected edge
+    //
+    // NOTE: j and k iteration could be optimized further but this is nice and simple
+    fn _generate(
+        n: u16,
+        g: &mut Graph,
+        count: &mut u64,
+        i: u16,
+        used_sink: bool,
+        mut j_0: usize,
+        mut k_0: usize,
+    ) {
         if DEBUG {
             println!("PROCESSING i={}, n={}:\t\t\t\t{:?}", i, n, g.vertices);
             if DEBUG_GRAPHVIZ {
@@ -74,7 +86,7 @@ impl Graph {
             g.vertices[i_][0] = Some(i + 1);
             g.vertices[i_ + 1][1] = Some(i);
 
-            Self::_generate(n, g, count, i + 1, used_sink);
+            Self::_generate(n, g, count, i + 1, used_sink, j_0, k_0);
         } else {
             // if vertex is not connected, it will create an unconnected graph. abort.
             if g.vertices[i_][0].is_none()
@@ -87,79 +99,93 @@ impl Graph {
             // place an outgoing edge and place an undirected edge if does not exist, then recurse.
             // restrict branching by only trying to connect the very next free vertex. rely on stable order of trying
             // directed and then undirected next.
-            // TODO: avoid iteration of j and k by tracking remaining candidates explicitly?
             let mut used_unconnected_j_vertex = false;
             // directed edges can connect to previously seen vertices, unseen but connected vertices, or a single new
             // unconnected vertex.
-            for j in 2..n + 2 {
+            for j in (j_0 as u16)..n + 2 {
                 if i == j {
                     continue;
                 }
                 let j_: usize = j as usize;
 
-                if g.vertices[j_][1].is_none() {
-                    if g.vertices[j_][0].is_none() && g.vertices[j_][2].is_none() {
-                        if used_unconnected_j_vertex {
-                            break;
-                        }
-                        used_unconnected_j_vertex = true;
+                if g.vertices[j_][1].is_some() {
+                    // scoot the j_0 cursor over
+                    if j_ == j_0 {
+                        j_0 += 1;
                     }
+                    continue;
+                }
 
-                    if g.vertices[i_][2].is_none() {
-                        let mut used_unconnected_k_vertex = false;
-                        // undirected edges can only connect to unseen but connected vertices or single new unconnected
-                        // vertex.
-                        for k in i + 1..n + 2 {
-                            if i == k {
-                                continue;
-                            }
-                            let k_: usize = k as usize;
+                if g.vertices[j_][0].is_none() && g.vertices[j_][2].is_none() {
+                    if used_unconnected_j_vertex {
+                        break;
+                    }
+                    used_unconnected_j_vertex = true;
+                }
 
-                            if g.vertices[k_][2].is_none() {
-                                if k != j
-                                    && g.vertices[k_][0].is_none()
-                                    && g.vertices[k_][1].is_none()
-                                {
-                                    if used_unconnected_k_vertex {
-                                        break;
-                                    }
-                                    used_unconnected_k_vertex = true;
-                                }
-
-                                // update this vertex
-                                // update the other side of the outgoing directed edge and undirected edge
-                                g.vertices[i_][0] = Some(j);
-                                g.vertices[i_][2] = Some(k);
-                                g.vertices[j_][1] = Some(i);
-                                g.vertices[k_][2] = Some(i);
-
-                                // recurse and backtrack
-                                Self::_generate(n, g, count, i + 1, used_sink);
-
-                                g.vertices[i_][0] = None;
-                                g.vertices[i_][2] = None;
-                                g.vertices[j_][1] = None;
-                                g.vertices[k_][2] = None;
-                            }
+                if g.vertices[i_][2].is_none() {
+                    let mut used_unconnected_k_vertex = false;
+                    // start from the greater of the k_0 cursor or the next vertex
+                    if (i as usize) + 1 > k_0 {
+                        k_0 = (i as usize) + 1
+                    }
+                    for k in (k_0 as u16)..n + 2 {
+                        if i == k {
+                            continue;
                         }
-                    } else {
+                        let k_: usize = k as usize;
+
+                        if g.vertices[k_][2].is_some() {
+                            // scoot the k_0 cursor over
+                            if k_ == k_0 {
+                                k_0 += 1;
+                            }
+                            continue;
+                        }
+
+                        if k != j && g.vertices[k_][0].is_none() && g.vertices[k_][1].is_none() {
+                            if used_unconnected_k_vertex {
+                                break;
+                            }
+                            used_unconnected_k_vertex = true;
+                        }
+
                         // update this vertex
-                        // update the other side of the outgoing directed edge
+                        // update the other side of the outgoing directed edge and undirected edge
                         g.vertices[i_][0] = Some(j);
+                        g.vertices[i_][2] = Some(k);
                         g.vertices[j_][1] = Some(i);
+                        g.vertices[k_][2] = Some(i);
 
                         // recurse and backtrack
-                        Self::_generate(n, g, count, i + 1, used_sink);
+                        Self::_generate(n, g, count, i + 1, used_sink, j_0, k_0);
 
                         g.vertices[i_][0] = None;
+                        g.vertices[i_][2] = None;
                         g.vertices[j_][1] = None;
+                        g.vertices[k_][2] = None;
                     }
+                } else {
+                    // update this vertex
+                    // update the other side of the outgoing directed edge
+                    g.vertices[i_][0] = Some(j);
+                    g.vertices[j_][1] = Some(i);
+
+                    // recurse and backtrack
+                    Self::_generate(n, g, count, i + 1, used_sink, j_0, k_0);
+
+                    g.vertices[i_][0] = None;
+                    g.vertices[j_][1] = None;
                 }
             }
 
             // treat vertex as the sink and recurse.
-            if !used_sink && (i_ > 1 || (n== 0 && i_ > 0)) && g.vertices[i_][1].is_some() && g.vertices[i_][2].is_none() {
-                Self::_generate(n, g, count, i + 1, true);
+            if !used_sink
+                && (i_ > 1 || (n == 0 && i_ > 0))
+                && g.vertices[i_][1].is_some()
+                && g.vertices[i_][2].is_none()
+            {
+                Self::_generate(n, g, count, i + 1, true, j_0, k_0);
             }
         }
     }

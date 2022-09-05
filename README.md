@@ -1,14 +1,14 @@
 # Feynman diagram generator ⚛️
 
-A simple generator of "Feynman diagram" permutations (as defined by [problem 781](https://projecteuler.net/problem=781)). Incrementally builds candidate graphs in a compact adjacency representation with backtracking and no isomorphic duplicates.
+A simple generator of "Feynman diagram" permutations (as defined by [problem 781](https://projecteuler.net/problem=781)). Incrementally builds isomorphically unique graphs in a compact adjacency representation using backtracking at over 13M results a second on my 2020 Macbook.
 
-Implemented quickly to play around with performance improvements, graph traversals, and to try out Rust for the first time. 🦀
+Implemented quickly to play around with program optimizations, graph traversals, and to try out Rust for the first time. 🦀
 
 ### Problem 781?
 
 This is NOT a solution for the problem whose math is left as an exercise for the reader. Good luck.
 
-This does not leverage any simplification needed to directly calculate the goal F(50000), but actually generates graph permutation and counts them (over 9M a second). This is clearly not scalable, but is fun! I was, at the time, interested in tiny chess engines and there is a similar underlying problem of rapidly generating states. The enumeration and visualization of small N graphs sparked ideas for the solution, but let's keep those to ourselves 🤫.
+This does not leverage any simplification needed to directly calculate the goal F(50000), but actually generates graph permutation and counts them. This is clearly not scalable, but is fun! I was, at the time, interested in tiny chess engines and there is a similar underlying problem of rapidly generating states. The enumeration and visualization of small N graphs sparked ideas for the solution, but let's keep those to ourselves. 🤫
 
 > Let F(n) be the number of connected graphs with blue edges (directed) and red edges (undirected) containing:
 > * two vertices of degree 1, one with a single outgoing blue edge and the other with a single incoming blue edge.
