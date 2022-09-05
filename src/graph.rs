@@ -41,11 +41,14 @@ impl Graph {
             vertices: [[None; 3]; MAX_N + 2],
         };
         let mut count: u64 = 0;
-        Self::_generate(&mut g, 0, false, &mut count, n);
+        Self::_generate(n, &mut g, &mut count, 0, false);
         count
     }
 
-    fn _generate(g: &mut Graph, i: u16, used_sink: bool, count: &mut u64, n: u16) {
+    // count is a mutable ref to a counter int of all found graphs so far
+    // i is the vertex index to process in this call
+    // used_sink tracks if we have already treated a prior vertex as the sink
+    fn _generate(n: u16, g: &mut Graph, count: &mut u64, i: u16, used_sink: bool) {
         if DEBUG {
             println!("PROCESSING i={}, n={}:\t\t\t\t{:?}", i, n, g.vertices);
             if DEBUG_GRAPHVIZ {
@@ -71,7 +74,7 @@ impl Graph {
             g.vertices[i_][0] = Some(i + 1);
             g.vertices[i_ + 1][1] = Some(i);
 
-            Self::_generate(g, i + 1, used_sink, count, n);
+            Self::_generate(n, g, count, i + 1, used_sink);
         } else {
             // if vertex is not connected, it will create an unconnected graph. abort.
             if g.vertices[i_][0].is_none()
@@ -131,7 +134,7 @@ impl Graph {
                                 g.vertices[k_][2] = Some(i);
 
                                 // recurse and backtrack
-                                Self::_generate(g, i + 1, used_sink, count, n);
+                                Self::_generate(n, g, count, i + 1, used_sink);
 
                                 g.vertices[i_][0] = None;
                                 g.vertices[i_][2] = None;
@@ -146,7 +149,7 @@ impl Graph {
                         g.vertices[j_][1] = Some(i);
 
                         // recurse and backtrack
-                        Self::_generate(g, i + 1, used_sink, count, n);
+                        Self::_generate(n, g, count, i + 1, used_sink);
 
                         g.vertices[i_][0] = None;
                         g.vertices[j_][1] = None;
@@ -156,7 +159,7 @@ impl Graph {
 
             // treat vertex as the sink and recurse.
             if !used_sink && i_ > 1 && g.vertices[i_][1].is_some() && g.vertices[i_][2].is_none() {
-                Self::_generate(g, i + 1, true, count, n);
+                Self::_generate(n, g, count, i + 1, true);
             }
         }
     }
