@@ -17,7 +17,6 @@ const DEBUG_GRAPHVIZ: bool = false;
 const PRINT_SOLUTIONS: bool = false;
 const PRINT_SOLUTIONS_GRAPHVIZ: bool = false;
 
-// TODO: scrutinize profligate type conversions
 pub struct Graph {
     // index represents vertex id
     // values are a tuple of (directed edge to, directed edge from, undirected edge to) vertex ids
@@ -63,7 +62,7 @@ impl Graph {
             *count += 1;
             return;
         }
-        let i_: usize = i.into();
+        let i_: usize = i as usize;
 
         if i == 0 {
             // source vertex. place a single outgoing edge.
@@ -91,7 +90,7 @@ impl Graph {
                 if i == j {
                     continue;
                 }
-                let j_: usize = j.into();
+                let j_: usize = j as usize;
 
                 if g.vertices[j_][1].is_none() {
                     if g.vertices[j_][0].is_none() && g.vertices[j_][2].is_none() {
@@ -109,7 +108,7 @@ impl Graph {
                             if i == k {
                                 continue;
                             }
-                            let k_: usize = k.into();
+                            let k_: usize = k as usize;
 
                             if g.vertices[k_][2].is_none() {
                                 if k != j
@@ -172,7 +171,7 @@ impl Graph {
                 str.push_str(&format!("\n\t{} -> {};", i, v[0].unwrap()));
             }
             if v[2].is_some() {
-                if usize::from(v[2].unwrap()) > i {
+                if v[2].unwrap() as usize > i {
                     str.push_str(&format!(
                         "\n\t{} -> {} [dir=none, color=red];",
                         i,
