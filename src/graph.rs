@@ -91,7 +91,7 @@ impl Graph {
             let mut used_unconnected_j_vertex = false;
             // directed edges can connect to previously seen vertices, unseen but connected vertices, or a single new
             // unconnected vertex.
-            for j in 1..n + 2 {
+            for j in 2..n + 2 {
                 if i == j {
                     continue;
                 }
