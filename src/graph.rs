@@ -9,7 +9,7 @@
 
 // This defines the size of the underlying vertex array. Raise this limit to call generate(n) with larger n. This incurs
 // a performance and memory penalty for small N but allows us to get sequential memory allocation.
-const MAX_N: usize = 14;
+const MAX_N: usize = 16;
 
 // These flags control printing debug information.
 const DEBUG: bool = false;

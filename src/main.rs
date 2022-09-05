@@ -35,4 +35,5 @@ fn main() {
     timed_generate(graph::Graph::generate, 10);
     timed_generate(graph::Graph::generate, 12);
     timed_generate(graph::Graph::generate, 14);
+    timed_generate(graph::Graph::generate, 16);
 }
