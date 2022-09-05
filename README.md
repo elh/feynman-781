@@ -2,7 +2,7 @@
 
 A simple generator of "Feynman diagram" permutations (as defined by [problem 781](https://projecteuler.net/problem=781)). Incrementally builds isomorphically unique graphs in a compact adjacency representation using backtracking at over 13M results a second on my 2020 Macbook.
 
-Implemented quickly to play around with performance improvements, graph traversals, and to try out Rust for the first time. 🦀
+Implemented quickly to play around with program optimizations, graph traversals, and to try out Rust for the first time. 🦀
 
 ### Problem 781?
 
