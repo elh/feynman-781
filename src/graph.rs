@@ -31,7 +31,10 @@ impl Graph {
             return 0;
         }
         if n as usize > MAX_N {
-            panic!("n ({}) cannot be greater than configured MAX_N ({})", n, MAX_N);
+            panic!(
+                "n ({}) cannot be greater than configured MAX_N ({})",
+                n, MAX_N
+            );
         }
         let mut g = Graph {
             vertices: [[None; 3]; MAX_N + 2],
@@ -51,7 +54,6 @@ impl Graph {
 
         if i == n + 2 {
             // end reached.
-            // we never generate unconnected graphs or graphs with incorrect edges. no check is needed.
             if PRINT_SOLUTIONS {
                 println!("solution found:\t{:?}", g.vertices);
                 if PRINT_SOLUTIONS_GRAPHVIZ {
@@ -92,10 +94,7 @@ impl Graph {
                 let j_: usize = j.into();
 
                 if g.vertices[j_][1].is_none() {
-                    if g.vertices[j_][0].is_none()
-                        && g.vertices[j_][1].is_none()
-                        && g.vertices[j_][2].is_none()
-                    {
+                    if g.vertices[j_][0].is_none() && g.vertices[j_][2].is_none() {
                         if used_unconnected_j_vertex {
                             break;
                         }
@@ -116,7 +115,6 @@ impl Graph {
                                 if k != j
                                     && g.vertices[k_][0].is_none()
                                     && g.vertices[k_][1].is_none()
-                                    && g.vertices[k_][2].is_none()
                                 {
                                     if used_unconnected_k_vertex {
                                         break;
