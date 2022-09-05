@@ -180,7 +180,11 @@ impl Graph {
             }
 
             // treat vertex as the sink and recurse.
-            if !used_sink && i_ > 1 && g.vertices[i_][1].is_some() && g.vertices[i_][2].is_none() {
+            if !used_sink
+                && (i_ > 1 || (n == 0 && i_ > 0))
+                && g.vertices[i_][1].is_some()
+                && g.vertices[i_][2].is_none()
+            {
                 Self::_generate(n, g, count, i + 1, true, j_0, k_0);
             }
         }

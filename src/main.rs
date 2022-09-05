@@ -27,7 +27,7 @@ where
 fn main() {
     // generation
     timed_header();
-    // NOTE: skipping F(0). currently breaks a simplifying assumption when n > 0.
+    timed_generate(graph::Graph::generate, 0);
     timed_generate(graph::Graph::generate, 2);
     timed_generate(graph::Graph::generate, 4);
     timed_generate(graph::Graph::generate, 6);
