@@ -7,20 +7,22 @@
  * F(50000) = ?
  */
 
-// TODO: consider making vertices a multi-dimensional array for data locality. N needs to be a const though
-// TODO: consider not using Option uint but a signed int and -1 as a sentinel value
-// TODO: scrutinize profligate type conversions
-// TODO: support parallelism?
-pub struct Graph {
-    // index represents vertex id
-    // values are a tuple of (directed edge to, directed edge from, undirected edge to) vertex ids
-    vertices: Vec<[Option<u16>; 3]>,
-}
+// This defines the size of the underlying vertex array. Raise this limit to call generate(n) with larger n. This incurs
+// a performance and memory penalty for small N but allows us to get sequential memory allocation.
+const MAX_N: usize = 14;
 
+// These flags control printing debug information.
 const DEBUG: bool = false;
 const DEBUG_GRAPHVIZ: bool = false;
 const PRINT_SOLUTIONS: bool = false;
 const PRINT_SOLUTIONS_GRAPHVIZ: bool = false;
+
+// TODO: scrutinize profligate type conversions
+pub struct Graph {
+    // index represents vertex id
+    // values are a tuple of (directed edge to, directed edge from, undirected edge to) vertex ids
+    vertices: [[Option<u16>; 3]; MAX_N + 2],
+}
 
 impl Graph {
     // generate the count of all unique Feynman diagrams for given n. If debug flags are set, print found results.
@@ -28,10 +30,11 @@ impl Graph {
         if n % 2 == 1 {
             return 0;
         }
-
-        let n_: usize = n.into();
+        if n as usize > MAX_N {
+            panic!("n ({}) cannot be greater than configured MAX_N ({})", n, MAX_N);
+        }
         let mut g = Graph {
-            vertices: vec![[None; 3]; n_ + 2],
+            vertices: [[None; 3]; MAX_N + 2],
         };
         let mut count: u64 = 0;
         Self::_generate(&mut g, 0, false, &mut count, n);
