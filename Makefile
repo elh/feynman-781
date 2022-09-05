@@ -4,4 +4,8 @@ run:
 clean: # rm leftover binary if make run is interrupted
 	rm src/main
 
-.PHONY: run clean
+lint:
+	cargo fmt
+	cargo clippy
+
+.PHONY: run clean lint
