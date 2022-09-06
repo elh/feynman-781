@@ -13,11 +13,7 @@ use std::fmt::Write;
 // a performance and memory overhead for small N but allows us to get sequential memory allocation.
 const MAX_N: usize = 16;
 
-// These flags control printing debug information.
-const DEBUG: bool = false;
-const DEBUG_GRAPHVIZ: bool = false;
-const PRINT_SOLUTIONS: bool = false;
-const PRINT_SOLUTIONS_GRAPHVIZ: bool = false;
+// Print debugging information via Cargo features. See Cargo.toml.
 
 #[derive(Default, Clone)]
 pub struct Graph {
@@ -59,18 +55,18 @@ impl Graph {
         mut j_0: usize,
         mut k_0: usize,
     ) {
-        if DEBUG {
+        if cfg!(feature = "debug") {
             println!("PROCESSING i={}, n={}:\t\t\t\t{:?}", i, n, g.vertices);
-            if DEBUG_GRAPHVIZ {
+            if cfg!(feature = "debug-graphviz") {
                 println!("{}", g.to_graphviz());
             }
         }
 
         if i == n + 2 {
             // end reached.
-            if PRINT_SOLUTIONS {
+            if cfg!(feature = "print-solutions") {
                 println!("solution found:\t{:?}", g.vertices);
-                if PRINT_SOLUTIONS_GRAPHVIZ {
+                if cfg!(feature = "print-solutions-graphviz") {
                     println!("{}", g.to_graphviz());
                 }
             }
