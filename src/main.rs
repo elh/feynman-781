@@ -8,7 +8,7 @@ fn timed_header() {
 // prints a csv line for timed run
 fn timed_generate<F>(func: F, n: u16)
 where
-    F: Fn(u16) -> u64,
+    F: FnOnce(u16) -> u64,
 {
     use std::time::Instant;
     let now = Instant::now();
@@ -27,13 +27,7 @@ where
 fn main() {
     // generation
     timed_header();
-    timed_generate(graph::Graph::generate, 0);
-    timed_generate(graph::Graph::generate, 2);
-    timed_generate(graph::Graph::generate, 4);
-    timed_generate(graph::Graph::generate, 6);
-    timed_generate(graph::Graph::generate, 8);
-    timed_generate(graph::Graph::generate, 10);
-    timed_generate(graph::Graph::generate, 12);
-    timed_generate(graph::Graph::generate, 14);
-    timed_generate(graph::Graph::generate, 16);
+    for x in (0..17).step_by(2) {
+        timed_generate(graph::Graph::generate, x);
+    }
 }
