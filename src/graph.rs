@@ -10,15 +10,12 @@ use std::fmt::Write;
  */
 
 // This defines the size of the underlying vertex array. Raise this limit to call generate(n) with larger n. This incurs
-// a performance and memory penalty for small N but allows us to get sequential memory allocation.
+// a performance and memory overhead for small N but allows us to get sequential memory allocation.
 const MAX_N: usize = 16;
 
-// These flags control printing debug information.
-const DEBUG: bool = false;
-const DEBUG_GRAPHVIZ: bool = false;
-const PRINT_SOLUTIONS: bool = false;
-const PRINT_SOLUTIONS_GRAPHVIZ: bool = false;
+// Print debugging information via Cargo features. See Cargo.toml.
 
+#[derive(Default, Clone)]
 pub struct Graph {
     // index represents vertex id
     // values are a tuple of (directed edge to, directed edge from, undirected edge to) vertex ids
@@ -31,15 +28,13 @@ impl Graph {
         if n % 2 == 1 {
             return 0;
         }
-        if n as usize > MAX_N {
+        if usize::from(n) > MAX_N {
             panic!(
                 "n ({}) cannot be greater than configured MAX_N ({})",
                 n, MAX_N
             );
         }
-        let mut g = Graph {
-            vertices: [[None; 3]; MAX_N + 2],
-        };
+        let mut g = Graph::default();
         let mut count: u64 = 0;
         Self::_generate(n, &mut g, &mut count, 0, false, 2, 2);
         count
@@ -50,7 +45,6 @@ impl Graph {
     // used_sink tracks if we have already treated a prior vertex as the sink
     // j_0 is a cursor tracking the first vertex we need to consider for the directed edge
     // k_0 is a cursor tracking the first vertex we need to consider for the undirected edge
-    //
     // NOTE: j and k iteration could be optimized further but this is nice and simple
     fn _generate(
         n: u16,
@@ -61,25 +55,25 @@ impl Graph {
         mut j_0: usize,
         mut k_0: usize,
     ) {
-        if DEBUG {
+        if cfg!(feature = "debug") {
             println!("PROCESSING i={}, n={}:\t\t\t\t{:?}", i, n, g.vertices);
-            if DEBUG_GRAPHVIZ {
+            if cfg!(feature = "debug-graphviz") {
                 println!("{}", g.to_graphviz());
             }
         }
 
         if i == n + 2 {
             // end reached.
-            if PRINT_SOLUTIONS {
+            if cfg!(feature = "print-solutions") {
                 println!("solution found:\t{:?}", g.vertices);
-                if PRINT_SOLUTIONS_GRAPHVIZ {
+                if cfg!(feature = "print-solutions-graphviz") {
                     println!("{}", g.to_graphviz());
                 }
             }
             *count += 1;
             return;
         }
-        let i_: usize = i as usize;
+        let i_: usize = usize::from(i);
 
         if i == 0 {
             // source vertex. place a single outgoing edge.
@@ -106,7 +100,7 @@ impl Graph {
                 if i == j {
                     continue;
                 }
-                let j_: usize = j as usize;
+                let j_: usize = usize::from(j);
 
                 if g.vertices[j_][1].is_some() {
                     // scoot the j_0 cursor over
@@ -126,14 +120,14 @@ impl Graph {
                 if g.vertices[i_][2].is_none() {
                     let mut used_unconnected_k_vertex = false;
                     // start from the greater of the k_0 cursor or the next vertex
-                    if (i as usize) + 1 > k_0 {
-                        k_0 = (i as usize) + 1
+                    if i_ + 1 > k_0 {
+                        k_0 = i_ + 1
                     }
                     for k in (k_0 as u16)..n + 2 {
                         if i == k {
                             continue;
                         }
-                        let k_: usize = k as usize;
+                        let k_: usize = usize::from(k);
 
                         if g.vertices[k_][2].is_some() {
                             // scoot the k_0 cursor over
@@ -199,7 +193,7 @@ impl Graph {
             if v[0].is_some() {
                 _ = write!(str, "\n\t{} -> {};", i, v[0].unwrap());
             }
-            if v[2].is_some() && v[2].unwrap() as usize > i {
+            if matches!(v[2], Some(x) if usize::from(x) > i) {
                 _ = write!(str, "\n\t{} -> {} [dir=none, color=red];", i, v[2].unwrap());
             }
         }

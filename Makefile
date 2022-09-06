@@ -1,5 +1,5 @@
 run:
-	(cd src; rustc -O -C target-cpu=native main.rs; ./main; rm main)
+	RUSTFLAGS="-C target-cpu=native" cargo run -q --release
 
 clean: # rm leftover binary if make run is interrupted
 	rm src/main

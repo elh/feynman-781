@@ -8,6 +8,12 @@ lto = true
 codegen-units = 1
 panic = "abort"
 
+[features]
+debug = []
+debug-graphviz = []
+print-solutions = []
+print-solutions-graphviz = []
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
