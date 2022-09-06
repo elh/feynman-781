@@ -19,6 +19,7 @@ const DEBUG_GRAPHVIZ: bool = false;
 const PRINT_SOLUTIONS: bool = false;
 const PRINT_SOLUTIONS_GRAPHVIZ: bool = false;
 
+#[derive(Default, Clone)]
 pub struct Graph {
     // index represents vertex id
     // values are a tuple of (directed edge to, directed edge from, undirected edge to) vertex ids
@@ -37,9 +38,7 @@ impl Graph {
                 n, MAX_N
             );
         }
-        let mut g = Graph {
-            vertices: [[None; 3]; MAX_N + 2],
-        };
+        let mut g = Graph::default();
         let mut count: u64 = 0;
         Self::_generate(n, &mut g, &mut count, 0, false, 2, 2);
         count
