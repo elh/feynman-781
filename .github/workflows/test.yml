@@ -27,5 +27,7 @@ jobs:
         with:
           command: clippy
           args: -- -Dwarnings
+      - name: Run tests
+        run: make test
       - name: Build and run main.rs
         run: make run
