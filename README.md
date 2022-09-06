@@ -18,3 +18,7 @@ _(example where N = 4)_
 <p>
     <img width="200px" alt="example graph" src="https://user-images.githubusercontent.com/1035393/188370348-79beb4cf-4c1f-42d5-91b9-cc6fd75c1dce.png">
 </p>
+
+### Usage
+
+`make run` to generate graphs. See `Makefile` for other dev tools. Configure `MAX_N` to try larger graphs and see Cargo features for debug configs.

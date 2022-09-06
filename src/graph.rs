@@ -201,3 +201,31 @@ impl Graph {
         str
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate() {
+        let cases: Vec<(u16, u64)> = vec![
+            (0, 1),
+            (2, 1),
+            (4, 5),
+            (6, 35),
+            (8, 319),
+            (10, 3559),
+            (12, 46841),
+            (14, 709601),
+            (16, 12156445),
+        ];
+        for case in cases {
+            let got = Graph::generate(case.0);
+            assert_eq!(
+                got, case.1,
+                "F({}) expected {}. got {}",
+                case.0, case.1, got
+            );
+        }
+    }
+}
